@@ -61,6 +61,7 @@ cursor:pointer;
 <div class="invoice">
 
 <h1>ShopEase Invoice</h1>
+<p>Invoice #: <span id="invoiceNo"></span></p>
 <p>Date: <span id="date"></span></p>
 
 <table>
@@ -87,10 +88,29 @@ cursor:pointer;
 
 <script>
 
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
+let invoiceData = JSON.parse(localStorage.getItem("invoiceData"));
+let cart = [];
+let invoiceNo = "";
+let invoiceDate = new Date().toLocaleDateString();
+
+if(invoiceData && Array.isArray(invoiceData.items) && invoiceData.items.length > 0){
+cart = invoiceData.items;
+invoiceNo = invoiceData.invoiceNo || "INV" + Date.now();
+invoiceDate = invoiceData.date || invoiceDate;
+}else{
+cart = JSON.parse(localStorage.getItem("cart")) || [];
+invoiceNo = "INV" + Date.now();
+}
 
 let body = document.getElementById("invoice-body");
 let subtotal = 0;
+
+if(cart.length === 0){
+body.innerHTML = `
+<tr>
+<td colspan="4">No invoice data available.</td>
+</tr>`;
+}
 
 cart.forEach(item=>{
 let total = item.price * item.qty;
@@ -101,18 +121,18 @@ body.innerHTML += `
 <td>${item.name}</td>
 <td>₹${item.price}</td>
 <td>${item.qty}</td>
-<td>₹${total}</td>
+<td>₹${total.toFixed(2)}</td>
 </tr>`;
 });
 
 let gst = subtotal * 0.05;
 let grand = subtotal + gst;
 
+document.getElementById("invoiceNo").innerText = invoiceNo;
 document.getElementById("subtotal").innerText = subtotal.toFixed(2);
 document.getElementById("gst").innerText = gst.toFixed(2);
 document.getElementById("grand").innerText = grand.toFixed(2);
-
-document.getElementById("date").innerText = new Date().toLocaleDateString();
+document.getElementById("date").innerText = invoiceDate;
 
 </script>
 
