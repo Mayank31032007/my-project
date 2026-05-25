@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Checkout | ShopEase</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
@@ -10,52 +13,106 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
 body{
 font-family:'Poppins',sans-serif;
-background:#000;
-color:#fff;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
 padding:40px;
+min-height:100vh;
 }
 
 .logo{
 font-family:'Playfair Display',serif;
-font-size:32px;
-margin-bottom:30px;
+font-size:34px;
 color:gold;
+margin-bottom:30px;
 }
 
 .checkout-container{
 display:grid;
 grid-template-columns:2fr 1fr;
-gap:40px;
+gap:35px;
 }
 
-.form-box,.summary{
-background:rgba(255,255,255,0.05);
+.form-box,
+.summary{
+background:rgba(255,255,255,0.06);
 padding:25px;
-border-radius:15px;
+border-radius:18px;
+backdrop-filter:blur(10px);
 }
 
-input,textarea{
+h2{
+color:gold;
+margin-bottom:20px;
+}
+
+input,
+textarea{
 width:100%;
-padding:10px;
-margin-top:5px;
-border-radius:8px;
+padding:12px;
 border:none;
-background:rgba(255,255,255,0.1);
-color:#fff;
 outline:none;
+border-radius:10px;
+background:rgba(255,255,255,0.1);
+color:white;
+margin-top:8px;
+font-size:15px;
+}
+
+textarea{
+height:100px;
+resize:none;
+}
+
+label{
+display:block;
+margin-top:10px;
+}
+
+#upiSection{
+display:none;
+margin-top:20px;
+}
+
+#qrcode{
+background:white;
+padding:10px;
+border-radius:10px;
+display:inline-block;
+margin-top:10px;
+}
+
+.order-item{
+padding:12px 0;
+border-bottom:1px solid rgba(255,255,255,0.1);
+}
+
+.total-box{
+margin-top:20px;
+font-size:22px;
+font-weight:bold;
+color:gold;
 }
 
 .pay-btn{
 width:100%;
-padding:12px;
-margin-top:15px;
+padding:14px;
+margin-top:25px;
 border:none;
-border-radius:25px;
+border-radius:30px;
 background:gold;
-cursor:pointer;
+color:black;
 font-weight:bold;
+font-size:16px;
+cursor:pointer;
 }
 
 .pay-btn:disabled{
@@ -63,69 +120,100 @@ opacity:0.5;
 cursor:not-allowed;
 }
 
-#upiSection{display:none;margin-top:10px;}
-
-#qrcode{
-background:#fff;
-display:inline-block;
-padding:10px;
-border-radius:10px;
+.small{
+font-size:13px;
+margin-top:5px;
+opacity:0.8;
 }
+
+@media(max-width:900px){
+
+.checkout-container{
+grid-template-columns:1fr;
+}
+
+body{
+padding:20px;
+}
+
+}
+
 </style>
+
 </head>
 
 <body>
 
-<script>
-let currentUser = JSON.parse(localStorage.getItem("currentUser"));
-
-if(!currentUser){
-alert("Please login first");
-window.location.href="login.html";
-}
-</script>
-
-<div class="logo">ShopEase Checkout</div>
+<div class="logo">
+ShopEase Checkout
+</div>
 
 <div class="checkout-container">
 
-<!-- FORM -->
+<!-- LEFT -->
+
 <div class="form-box">
 
 <h2>Shipping Details</h2>
 
 <input type="text" id="name" placeholder="Full Name">
+
 <br><br>
 
 <input type="text" id="phone" placeholder="Phone Number">
+
 <br><br>
 
-<textarea id="address" placeholder="Address"></textarea>
+<textarea id="address" placeholder="Full Address"></textarea>
+
 <br><br>
 
-<h3>Payment Method</h3>
+<h2>Payment Method</h2>
 
-<label><input type="radio" name="payment" value="UPI" checked> UPI</label><br>
-<label><input type="radio" name="payment" value="COD"> COD</label>
+<label>
+<input type="radio" name="payment" value="UPI" checked>
+UPI Payment
+</label>
+
+<label>
+<input type="radio" name="payment" value="COD">
+Cash On Delivery
+</label>
 
 <div id="upiSection">
-<p>Scan to Pay</p>
+
+<p>Scan QR To Pay</p>
+
 <div id="qrcode"></div>
-</div>
+
+<p class="small">
+UPI ID: 7982069902@upi
+</p>
 
 </div>
 
-<!-- SUMMARY -->
+</div>
+
+<!-- RIGHT -->
+
 <div class="summary">
 
 <h2>Order Summary</h2>
 
 <div id="items"></div>
 
-<h3 id="total"></h3>
+<div class="total-box" id="total">
+Total: ₹0
+</div>
 
-<button class="pay-btn" id="payBtn" onclick="placeOrder()" disabled>
-Pay Now
+<button
+class="pay-btn"
+id="payBtn"
+onclick="placeOrder()"
+disabled>
+
+Place Order
+
 </button>
 
 </div>
@@ -134,110 +222,347 @@ Pay Now
 
 <script>
 
-/* UPI DETAILS */
-const upiId = "7982069902@upi";
-const merchant = "ShopEase";
+/* =========================
+   LOGIN CHECK
+========================= */
 
-/* AUTO FILL */
-document.getElementById("name").value = currentUser.name;
+let currentUser =
+JSON.parse(localStorage.getItem("currentUser"));
 
-/* CART */
-function getCart(){
-return JSON.parse(localStorage.getItem("cart")) || [];
+if(!currentUser){
+
+alert("Please login first");
+
+window.location.href = "login.html";
+
 }
 
-/* CALCULATE */
+/* =========================
+   AUTO FILL
+========================= */
+
+document.getElementById("name").value =
+currentUser.name || "";
+
+document.getElementById("phone").value =
+currentUser.phone || "";
+
+/* =========================
+   GET CART
+========================= */
+
+function getCart(){
+
+/* FIRST CHECK checkoutCart */
+
+let checkoutCart =
+JSON.parse(localStorage.getItem("checkoutCart"));
+
+if(Array.isArray(checkoutCart) &&
+checkoutCart.length > 0){
+
+return checkoutCart;
+
+}
+
+/* OTHERWISE NORMAL CART */
+
+let cart =
+JSON.parse(localStorage.getItem("cart"));
+
+if(!Array.isArray(cart)){
+
+return [];
+
+}
+
+return cart;
+
+}
+
+/* =========================
+   CALCULATE
+========================= */
+
 function calculate(){
 
 let cart = getCart();
 
 if(cart.length === 0){
+
+alert("Cart is empty!");
+
 window.location.href = "cart.html";
+
+return;
+
 }
 
 let subtotal = 0;
+
 let html = "";
 
 cart.forEach(item=>{
-subtotal += item.price * item.qty;
-html += `<p>${item.name} x ${item.qty} = ₹${item.price * item.qty}</p>`;
+
+let itemTotal =
+item.price * item.qty;
+
+subtotal += itemTotal;
+
+html += `
+
+<div class="order-item">
+
+<b>${item.name}</b>
+
+<p>
+₹${item.price} × ${item.qty}
+</p>
+
+<p>
+Total: ₹${itemTotal.toFixed(2)}
+</p>
+
+</div>
+
+`;
+
 });
 
 let gst = subtotal * 0.05;
-let total = subtotal + gst + 50;
 
-document.getElementById("items").innerHTML = html;
-document.getElementById("total").innerText = "Total: ₹" + total.toFixed(2);
+let delivery = 50;
 
-generateQR(total.toFixed(2));
+let finalTotal =
+subtotal + gst + delivery;
+
+html += `
+
+<br>
+
+<p>
+Subtotal:
+₹${subtotal.toFixed(2)}
+</p>
+
+<p>
+GST (5%):
+₹${gst.toFixed(2)}
+</p>
+
+<p>
+Delivery:
+₹${delivery.toFixed(2)}
+</p>
+
+`;
+
+document.getElementById("items").innerHTML =
+html;
+
+document.getElementById("total").innerHTML =
+`Total: ₹${finalTotal.toFixed(2)}`;
+
+generateQR(finalTotal.toFixed(2));
+
 }
 
-/* QR GENERATE */
+/* =========================
+   GENERATE QR
+========================= */
+
 function generateQR(amount){
-let upiURL = `upi://pay?pa=${upiId}&pn=${merchant}&am=${amount}&cu=INR`;
 
-document.getElementById("qrcode").innerHTML = "";
+let upiId = "7982069902@upi";
 
-new QRCode(document.getElementById("qrcode"), {
-text: upiURL,
-width: 150,
-height: 150
-});
+let merchant = "ShopEase";
+
+let upiLink =
+`upi://pay?pa=${upiId}&pn=${merchant}&am=${amount}&cu=INR`;
+
+document.getElementById("qrcode").innerHTML =
+"";
+
+if(typeof QRCode !== "undefined"){
+
+new QRCode(
+document.getElementById("qrcode"),
+{
+text: upiLink,
+width:150,
+height:150
+}
+);
+
 }
 
-/* VALIDATION */
+}
+
+/* =========================
+   VALIDATION
+========================= */
+
 function validate(){
-let name = document.getElementById("name").value.trim();
-let phone = document.getElementById("phone").value.trim();
-let address = document.getElementById("address").value.trim();
 
-let phoneOk = /^[0-9]{10}$/.test(phone);
+let name =
+document.getElementById("name")
+.value.trim();
 
-document.getElementById("payBtn").disabled =
-!(name.length > 2 && phoneOk && address.length > 5);
+let phone =
+document.getElementById("phone")
+.value.trim();
+
+let address =
+document.getElementById("address")
+.value.trim();
+
+let phoneValid =
+/^[0-9]{10}$/.test(phone);
+
+let valid =
+name.length > 2 &&
+phoneValid &&
+address.length > 5;
+
+document.getElementById("payBtn")
+.disabled = !valid;
+
 }
 
-document.querySelectorAll("input,textarea").forEach(el=>{
-el.addEventListener("input", validate);
+/* =========================
+   EVENTS
+========================= */
+
+document.querySelectorAll("input,textarea")
+.forEach(el=>{
+
+el.addEventListener("input",validate);
+
 });
 
-/* PAYMENT SWITCH */
-document.querySelectorAll('input[name="payment"]').forEach(r=>{
-r.addEventListener("change",()=>{
-let method = document.querySelector('input[name="payment"]:checked').value;
-document.getElementById("upiSection").style.display =
-(method === "UPI") ? "block" : "none";
-});
+/* =========================
+   PAYMENT SWITCH
+========================= */
+
+document.querySelectorAll(
+'input[name="payment"]'
+).forEach(radio=>{
+
+radio.addEventListener("change",()=>{
+
+let method =
+document.querySelector(
+'input[name="payment"]:checked'
+).value;
+
+document.getElementById("upiSection")
+.style.display =
+method === "UPI"
+? "block"
+: "none";
+
 });
 
-/* PLACE ORDER */
+});
+
+/* =========================
+   PLACE ORDER
+========================= */
+
 function placeOrder(){
 
 let cart = getCart();
 
-let orders = JSON.parse(localStorage.getItem("orders")) || [];
+if(cart.length === 0){
+
+alert("Cart is empty");
+return;
+}
+let subtotal = 0;
+
+cart.forEach(item=>{
+
+subtotal += item.price * item.qty;
+
+});
+
+let gst = subtotal * 0.05;
+
+let delivery = 50;
+
+let total =
+subtotal + gst + delivery;
+
+/* ORDER OBJECT */
 
 let order = {
-orderId: "ORD" + Date.now(),
-user: currentUser,
+
+orderId:
+"ORD" + Date.now(),
+
+userId:
+currentUser.userId ||
+currentUser.email,
+
+name:
+document.getElementById("name").value,
+
+email:
+currentUser.email || "",
+
+phone:
+document.getElementById("phone").value,
+
+address:
+document.getElementById("address").value,
+
 items: cart,
-total: document.getElementById("total").innerText,
-status: "Pending",
-payment: document.querySelector('input[name="payment"]:checked').value,
-date: new Date().toLocaleString()
+
+subtotal:
+subtotal.toFixed(2),
+
+gst:
+gst.toFixed(2),
+
+delivery:
+delivery,
+
+total:
+total.toFixed(2),
+
+payment:
+document.querySelector(
+'input[name="payment"]:checked'
+).value,
+
+status:
+"Pending",
+date:
+new Date().toLocaleString()
 };
-
+let orders =
+JSON.parse(localStorage.getItem("orders")) || [];
 orders.push(order);
-
-localStorage.setItem("orders", JSON.stringify(orders));
+localStorage.setItem(
+"orders",
+JSON.stringify(orders)
+);
+localStorage.setItem(
+"lastOrder",
+JSON.stringify(order)
+);
 localStorage.removeItem("cart");
-
-window.location.href = "success.html";
+localStorage.removeItem("checkoutCart");
+alert("Order Placed Successfully!");
+window.location.href =
+"success.html";
 }
-
-/* INIT */
+window.onload = function(){
 calculate();
-document.getElementById("upiSection").style.display = "block";
+validate();
+document.getElementById("upiSection")
+.style.display = "block";
+};
 </script>
 
 </body>
