@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Orders | ShopEase</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+font-family:'Poppins',sans-serif;
+padding:40px;
+}
+
+h1{
+color:gold;
+margin-bottom:5px;
+}
+
+.top-bar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:25px;
+flex-wrap:wrap;
+gap:10px;
+}
+
+button{
+background:gold;
+border:none;
+padding:6px 12px;
+border-radius:6px;
+cursor:pointer;
+font-weight:600;
+}
+
+button:hover{
+opacity:0.85;
+}
+
+.table-container{
+overflow-x:auto;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:20px;
+background:#111;
+border-radius:10px;
+overflow:hidden;
+}
+
+th,td{
+border:1px solid #222;
+padding:10px;
+text-align:center;
+}
+
+th{
+background:#000;
+color:gold;
+}
+
+.status{
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:600;
+}
+
+.pending{background:orange;color:black;}
+.shipped{background:#00bfff;color:black;}
+.delivered{background:#00ff7f;color:black;}
+.cancelled{background:red;color:white;}
+
+.no-orders{
+margin-top:30px;
+font-size:18px;
+color:#aaa;
+}
+
+.summary{
+margin-top:10px;
+color:#ccc;
+font-size:14px;
+}
+
+.cancel-btn{
+background:red;
+color:white;
+padding:4px 8px;
+border-radius:4px;
+font-size:12px;
+}
+
+.cancel-btn:hover{
+opacity:0.8;
+}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+<div>
+<h1>My Orders</h1>
+<div id="welcome"></div>
+<div class="summary" id="summary"></div>
+</div>
+
+<div>
+<button onclick="goShop()">Back to Shop</button>
+<button onclick="logout()">Logout</button>
+</div>
+</div>
+
+<div class="table-container">
+<div id="orders"></div>
+</div>
+
+<script>
+
+/* 🔐 LOGIN CHECK */
+let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+if(!currentUser){
+window.location.href="login.html";
+}
+
+document.getElementById("welcome").innerText="Welcome, "+currentUser.name;
+
+/* 🚪 LOGOUT */
+function logout(){
+localStorage.removeItem("currentUser");
+window.location.href="login.html";
+}
+
+function goShop(){
+window.location.href="home.html";
+}
+
+/* 📦 RENDER ORDERS */
+function renderOrders(){
+
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+/* Latest first */
+orders.sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+let myOrders = orders.filter(o=>o.userId===currentUser.userId);
+
+let container = document.getElementById("orders");
+
+if(myOrders.length===0){
+container.innerHTML="<div class='no-orders'>No Orders Yet</div>";
+document.getElementById("summary").innerText="";
+return;
+}
+
+/* Summary */
+let totalSpent = 0;
+myOrders.forEach(o=>{
+if(o.status!=="Cancelled"){
+totalSpent += parseFloat(o.total.replace("₹","")) || 0;
+}
+});
+
+document.getElementById("summary").innerText =
+"Total Orders: "+myOrders.length+" | Total Spent: ₹"+totalSpent.toFixed(2);
+
+let html="<table><tr><th>Order ID</th><th>Date</th><th>Total</th><th>Payment</th><th>Status</th><th>Action</th></tr>";
+
+myOrders.forEach(o=>{
+
+let statusText = o.status || "Pending";
+let statusClass = statusText.toLowerCase();
+
+html+=`<tr>
+<td>${o.orderId}</td>
+<td>${o.date || "-"}</td>
+<td>${o.total}</td>
+<td>${o.payment}</td>
+<td><span class="status ${statusClass}">${statusText}</span></td>
+<td>
+${statusText==="Pending" ? 
+`<button class="cancel-btn" onclick="cancelOrder('${o.orderId}')">Cancel</button>` 
+: "-"}
+</td>
+</tr>`;
+});
+
+html+="</table>";
+container.innerHTML=html;
+}
+
+/* ❌ CANCEL ORDER */
+function cancelOrder(orderId){
+
+let orders = JSON.parse(localStorage.getItem("orders")) || [];
+
+orders = orders.map(o=>{
+if(o.orderId===orderId && o.status==="Pending"){
+o.status="Cancelled";
+}
+return o;
+});
+
+localStorage.setItem("orders",JSON.stringify(orders));
+renderOrders();
+}
+
+/* 🔄 AUTO REFRESH (MULTI TAB SUPPORT) */
+window.addEventListener("storage", function(event){
+if(event.key==="orders"){
+renderOrders();
+}
+});
+
+renderOrders();
+
+</script>
+
+</body>
+</html>

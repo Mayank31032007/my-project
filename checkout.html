@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title> Checkout | ShopEase</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body{
+font-family:'Poppins',sans-serif;
+background:black;
+color:white;
+padding:40px;
+}
+
+.logo{
+font-family:'Playfair Display',serif;
+font-size:32px;
+margin-bottom:30px;
+background:linear-gradient(45deg,#d4af37,#ffd700,#fff8dc);
+-webkit-background-clip:text;
+-webkit-text-fill-color:transparent;
+}
+
+.checkout-container{
+display:grid;
+grid-template-columns:2fr 1fr;
+gap:40px;
+}
+
+.form-box,.summary{
+background:rgba(255,255,255,0.05);
+backdrop-filter:blur(15px);
+padding:30px;
+border-radius:20px;
+}
+
+.input-group{
+margin-bottom:15px;
+}
+
+.input-group input,
+.input-group textarea{
+width:100%;
+padding:10px;
+margin-top:5px;
+border:none;
+border-radius:8px;
+background:rgba(255,255,255,0.1);
+color:white;
+}
+
+.input-group input:focus,
+.input-group textarea:focus{
+outline:2px solid gold;
+}
+
+.summary-row{
+display:flex;
+justify-content:space-between;
+margin:8px 0;
+font-size:14px;
+}
+
+.total{
+font-size:20px;
+font-weight:700;
+color:#ffd700;
+margin-top:15px;
+}
+
+.pay-btn{
+margin-top:20px;
+width:100%;
+padding:12px;
+border:none;
+border-radius:30px;
+background:linear-gradient(45deg,#d4af37,#ffd700);
+color:black;
+font-weight:600;
+cursor:pointer;
+transition:0.3s;
+}
+
+.pay-btn:disabled{
+opacity:0.5;
+cursor:not-allowed;
+}
+
+.pay-btn:hover:not(:disabled){
+transform:scale(1.05);
+}
+
+.back-btn{
+margin-top:10px;
+background:#444;
+color:white;
+padding:8px 15px;
+border:none;
+border-radius:8px;
+cursor:pointer;
+}
+
+.item-list{
+margin-bottom:15px;
+border-bottom:1px solid rgba(255,255,255,0.2);
+padding-bottom:10px;
+}
+
+#upiSection{
+margin-top:15px;
+display:none;
+}
+
+#qrcode{
+background:white;
+padding:10px;
+display:inline-block;
+border-radius:10px;
+margin-top:10px;
+}
+
+@media(max-width:900px){
+.checkout-container{
+grid-template-columns:1fr;
+}
+}
+</style>
+</head>
+
+<body>
+
+<script>
+let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+if(!currentUser){
+window.location.href="login.html";
+}
+</script>
+
+<div class="logo">ShopEase Checkout</div>
+
+<div class="checkout-container">
+
+<div class="form-box">
+
+<h2>Shipping Details</h2>
+
+<div class="input-group">
+<label>Full Name</label>
+<input type="text" id="name">
+</div>
+
+<div class="input-group">
+<label>Phone Number</label>
+<input type="text" id="phone" maxlength="10">
+</div>
+
+<div class="input-group">
+<label>Address</label>
+<textarea rows="3" id="address"></textarea>
+</div>
+
+<h2>Payment Method</h2>
+
+<div class="payment-options">
+<label><input type="radio" name="payment" value="UPI" checked> UPI</label><br>
+<label><input type="radio" name="payment" value="Card"> Credit / Debit Card</label><br>
+<label><input type="radio" name="payment" value="COD"> Cash on Delivery</label>
+</div>
+
+<div id="upiSection">
+<p>Scan this QR to Pay</p>
+<div id="qrcode"></div>
+</div>
+
+<button class="back-btn" onclick="window.location.href='cart.html'">← Back to Cart</button>
+
+</div>
+
+<div class="summary">
+
+<h2>Order Summary</h2>
+
+<div id="itemsPreview"></div>
+
+<div class="summary-row">
+<span>Subtotal</span>
+<span id="subtotal">₹0</span>
+</div>
+
+<div class="summary-row">
+<span>GST (5%)</span>
+<span id="gst">₹0</span>
+</div>
+
+<div class="summary-row">
+<span>Delivery</span>
+<span>₹50</span>
+</div>
+
+<hr style="margin:15px 0;border-color:rgba(255,255,255,0.2);">
+
+<div class="summary-row total">
+<span>Total</span>
+<span id="total">₹0</span>
+</div>
+
+<button class="pay-btn" id="payBtn" onclick="placeOrder()" disabled>
+Pay Now
+</button>
+
+</div>
+</div>
+
+<script>
+
+/* 🔥 YOUR PHONEPE UPI */
+let upiId = "7982069902.wallet@phonepe";
+let merchantName = "ShopEase";
+
+/* Autofill */
+document.getElementById("name").value=currentUser.name;
+
+/* Cart */
+function getCart(){
+return JSON.parse(localStorage.getItem("cart"))||[];
+}
+
+function calculate(){
+
+let cart=getCart();
+if(cart.length===0){
+window.location.href="cart.html";
+}
+
+let subtotal=0;
+let previewHTML="";
+
+cart.forEach(item=>{
+subtotal+=item.price*item.qty;
+previewHTML+=`
+<div class="item-list">
+${item.name} × ${item.qty}
+<span style="float:right;">₹${item.price*item.qty}</span>
+</div>`;
+});
+
+document.getElementById("itemsPreview").innerHTML=previewHTML;
+
+let gst=subtotal*0.05;
+let total=subtotal+gst+50;
+
+document.getElementById("subtotal").innerText="₹"+subtotal.toFixed(2);
+document.getElementById("gst").innerText="₹"+gst.toFixed(2);
+document.getElementById("total").innerText="₹"+total.toFixed(2);
+
+generateUPIQR(total.toFixed(2));
+}
+
+/* QR Generate */
+function generateUPIQR(amount){
+
+let upiURL = `upi://pay?pa=${upiId}&pn=${merchantName}&am=${amount}&cu=INR`;
+
+document.getElementById("qrcode").innerHTML="";
+
+new QRCode(document.getElementById("qrcode"),{
+text: upiURL,
+width:150,
+height:150
+});
+}
+
+/* Show Hide QR */
+document.querySelectorAll('input[name="payment"]').forEach(radio=>{
+radio.addEventListener("change",()=>{
+let selected=document.querySelector('input[name="payment"]:checked').value;
+document.getElementById("upiSection").style.display =
+selected==="UPI"?"block":"none";
+});
+});
+
+/* Validation */
+function validateForm(){
+let name=document.getElementById("name").value.trim();
+let phone=document.getElementById("phone").value.trim();
+let address=document.getElementById("address").value.trim();
+let payBtn=document.getElementById("payBtn");
+
+let phonePattern=/^[0-9]{10}$/;
+payBtn.disabled=!(name.length>2 && phonePattern.test(phone) && address.length>=5);
+}
+
+document.getElementById("name").addEventListener("input",validateForm);
+document.getElementById("phone").addEventListener("input",validateForm);
+document.getElementById("address").addEventListener("input",validateForm);
+
+/* Place Order */
+function placeOrder(){
+
+if(!confirm("Confirm your order?")) return;
+
+let cart=getCart();
+let orders=JSON.parse(localStorage.getItem("orders"))||[];
+
+let orderId="ORD"+Date.now();
+
+let orderData={
+orderId:orderId,
+userId:currentUser.userId,
+name:currentUser.name,
+email:currentUser.email,
+items:cart,
+total:document.getElementById("total").innerText,
+status:"Pending",
+payment:document.querySelector('input[name="payment"]:checked').value,
+date:new Date().toLocaleString()
+};
+
+orders.push(orderData);
+localStorage.setItem("orders",JSON.stringify(orders));
+localStorage.removeItem("cart");
+
+window.location.href="success.html";
+}
+
+calculate();
+document.getElementById("upiSection").style.display="block";
+
+</script>
+
+</body>
+</html>

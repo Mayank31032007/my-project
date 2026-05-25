@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register | ShopEase</title>
+
+<style>
+body{
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+font-family:Arial;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.box{
+background:rgba(0,0,0,0.7);
+backdrop-filter:blur(15px);
+padding:35px;
+border-radius:15px;
+width:320px;
+box-shadow:0 8px 25px rgba(0,0,0,0.5);
+}
+
+h2{
+color:gold;
+margin-bottom:20px;
+text-align:center;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:8px 0;
+border:none;
+border-radius:6px;
+outline:none;
+}
+
+input:focus{
+outline:2px solid gold;
+}
+
+button{
+width:100%;
+padding:10px;
+background:gold;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-weight:bold;
+margin-top:10px;
+}
+
+button:hover{
+opacity:0.9;
+}
+
+#error{
+color:#ff4d4d;
+margin-top:10px;
+text-align:center;
+min-height:20px;
+}
+
+.success{
+color:#00ff7f;
+text-align:center;
+margin-top:10px;
+}
+
+.link{
+text-align:center;
+margin-top:15px;
+font-size:14px;
+}
+
+.link a{
+color:gold;
+text-decoration:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="box">
+<h2>Create Account</h2>
+
+<input type="text" id="name" placeholder="Full Name">
+<input type="email" id="email" placeholder="Email">
+<input type="password" id="password" placeholder="Password">
+<input type="password" id="confirm" placeholder="Confirm Password">
+
+<button onclick="register()">Register</button>
+
+<div id="error"></div>
+<div id="success" class="success"></div>
+
+<div class="link">
+Already have account? <a href="login.html">Login</a>
+</div>
+
+</div>
+
+<script>
+
+/* If already logged in → go to shop */
+let currentUser = localStorage.getItem("currentUser");
+if(currentUser){
+window.location.href="home.html";
+}
+
+/* Allow Enter key */
+document.addEventListener("keypress",function(e){
+if(e.key==="Enter"){
+register();
+}
+});
+
+function register(){
+
+let name=document.getElementById("name").value.trim();
+let email=document.getElementById("email").value.trim();
+let password=document.getElementById("password").value.trim();
+let confirm=document.getElementById("confirm").value.trim();
+
+let error=document.getElementById("error");
+let success=document.getElementById("success");
+
+error.innerText="";
+success.innerText="";
+
+/* Validation */
+
+if(name.length<3){
+error.innerText="Enter valid full name";
+return;
+}
+
+let emailPattern=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+if(!emailPattern.test(email)){
+error.innerText="Enter valid email address";
+return;
+}
+
+if(password.length<6){
+error.innerText="Password must be at least 6 characters";
+return;
+}
+
+if(password!==confirm){
+error.innerText="Passwords do not match";
+return;
+}
+
+/* Get users */
+let users=JSON.parse(localStorage.getItem("users"))||[];
+
+/* Check duplicate */
+if(users.find(u=>u.email===email)){
+error.innerText="Email already registered";
+return;
+}
+
+/* Create user */
+let user={
+userId:"USER"+Date.now(),
+name:name,
+email:email,
+password:password
+};
+
+users.push(user);
+localStorage.setItem("users",JSON.stringify(users));
+
+success.innerText="Registration successful! Redirecting to login...";
+
+/* Redirect after 1.5 sec */
+setTimeout(()=>{
+window.location.href="login.html";
+},1500);
+
+}
+
+</script>
+
+</body>
+</html>

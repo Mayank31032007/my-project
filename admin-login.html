@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin Login | ShopEase</title>
+
+<style>
+body{
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+color:white;
+font-family:Arial;
+}
+
+.box{
+background:rgba(0,0,0,0.8);
+padding:35px;
+border-radius:15px;
+width:320px;
+box-shadow:0 8px 25px rgba(0,0,0,0.5);
+text-align:center;
+}
+
+h2{
+color:gold;
+margin-bottom:20px;
+}
+
+input{
+padding:10px;
+margin:10px 0;
+width:100%;
+border-radius:6px;
+border:none;
+outline:none;
+}
+
+input:focus{
+outline:2px solid gold;
+}
+
+.password-wrapper{
+position:relative;
+}
+
+.eye{
+position:absolute;
+right:10px;
+top:50%;
+transform:translateY(-50%);
+cursor:pointer;
+font-size:13px;
+color:gold;
+}
+
+button{
+padding:10px;
+border:none;
+border-radius:6px;
+background:gold;
+color:black;
+cursor:pointer;
+width:100%;
+font-weight:bold;
+margin-top:10px;
+}
+
+button:hover{
+opacity:0.9;
+}
+
+#error{
+color:#ff4d4d;
+margin-top:10px;
+min-height:20px;
+}
+
+.locked{
+color:red;
+font-size:14px;
+margin-top:10px;
+}
+</style>
+</head>
+<body>
+
+<div class="box">
+
+<h2>Admin Login</h2>
+
+<input type="text" id="username" placeholder="Admin Username">
+
+<div class="password-wrapper">
+<input type="password" id="password" placeholder="Admin Password">
+<span class="eye" onclick="togglePassword()">Show</span>
+</div>
+
+<button onclick="login()">Login</button>
+
+<div id="error"></div>
+<div id="lockMsg" class="locked"></div>
+
+</div>
+
+<script>
+
+/* Redirect if already logged in */
+if(localStorage.getItem("adminLoggedIn")==="true"){
+window.location.href="admin.html";
+}
+
+/* Default Admin Credentials */
+const ADMIN_USER="admin";
+const ADMIN_PASS="admin123";
+
+/* Attempt tracking */
+let attempts=0;
+let locked=false;
+
+/* Enter key support */
+document.addEventListener("keypress",function(e){
+if(e.key==="Enter"){
+login();
+}
+});
+
+function togglePassword(){
+let pass=document.getElementById("password");
+let eye=document.querySelector(".eye");
+
+if(pass.type==="password"){
+pass.type="text";
+eye.innerText="Hide";
+}else{
+pass.type="password";
+eye.innerText="Show";
+}
+}
+
+function login(){
+
+if(locked) return;
+
+let user=document.getElementById("username").value.trim();
+let pass=document.getElementById("password").value.trim();
+let error=document.getElementById("error");
+
+error.innerText="";
+
+if(user==="" || pass===""){
+error.innerText="Please fill all fields";
+return;
+}
+
+if(user===ADMIN_USER && pass===ADMIN_PASS){
+
+localStorage.setItem("adminLoggedIn","true");
+window.location.href="admin.html";
+
+}else{
+
+attempts++;
+error.innerText="Invalid Admin Credentials";
+
+if(attempts>=3){
+locked=true;
+document.getElementById("lockMsg").innerText=
+"Too many failed attempts. Refresh page to try again.";
+}
+}
+}
+
+</script>
+
+</body>
+</html>
