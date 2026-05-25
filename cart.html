@@ -3,12 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Cart | ShopEase</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;500;600&display=swap" rel="stylesheet">
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;}
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
 
 body{
 font-family:'Poppins',sans-serif;
@@ -23,6 +29,7 @@ justify-content:space-between;
 align-items:center;
 margin-bottom:40px;
 flex-wrap:wrap;
+gap:15px;
 }
 
 .logo{
@@ -48,100 +55,192 @@ gap:20px;
 padding:20px;
 background:rgba(255,255,255,0.05);
 border-radius:15px;
+margin-bottom:20px;
 }
 
 .cart-card img{
-width:80px;
-height:80px;
+width:90px;
+height:90px;
 border-radius:10px;
+object-fit:cover;
 }
 
 .price{
 color:gold;
 font-weight:bold;
+margin-top:5px;
+}
+
+.qty{
+margin-top:10px;
+display:flex;
+align-items:center;
+gap:10px;
 }
 
 .qty button{
-padding:5px 10px;
+padding:5px 12px;
 background:gold;
 border:none;
 cursor:pointer;
+border-radius:5px;
+font-weight:bold;
 }
 
 .remove{
 color:red;
 cursor:pointer;
-margin-top:5px;
+margin-top:10px;
 }
 
 .summary{
 background:rgba(255,255,255,0.05);
 padding:25px;
 border-radius:15px;
+height:fit-content;
+}
+
+.summary h2{
+margin-bottom:15px;
+}
+
+.summary p{
+margin-bottom:10px;
 }
 
 .total{
-font-size:20px;
+font-size:22px;
 color:gold;
 font-weight:bold;
+margin-top:15px;
 }
 
 .btn{
 width:100%;
-padding:10px;
-margin-top:10px;
+padding:12px;
+margin-top:12px;
 border:none;
 cursor:pointer;
 border-radius:10px;
+font-weight:bold;
+font-size:15px;
 }
 
-.pay-btn{background:green;color:white;}
-.invoice-btn{background:gold;}
-.clear-btn{background:red;color:white;}
+.pay-btn{
+background:green;
+color:white;
+}
+
+.invoice-btn{
+background:gold;
+color:black;
+}
+
+.clear-btn{
+background:red;
+color:white;
+}
 
 .empty{
 text-align:center;
 opacity:0.7;
+font-size:20px;
+margin-top:50px;
 }
+
+@media(max-width:900px){
+
+.cart-container{
+grid-template-columns:1fr;
+}
+
+body{
+padding:20px;
+}
+
+}
+
 </style>
 </head>
 
 <body>
 
 <script>
-let currentUser = JSON.parse(localStorage.getItem("currentUser"));
+
+/* LOGIN CHECK */
+
+let currentUser =
+JSON.parse(localStorage.getItem("currentUser"));
 
 if(!currentUser){
+
 alert("Please login first");
 window.location.href="login.html";
+
 }
+
 </script>
 
 <div class="header">
-<div class="logo">ShopEase Cart</div>
-<a href="home.html">Continue Shopping</a>
+
+<div class="logo">
+ShopEase Cart
+</div>
+
+<a href="home.html">
+Continue Shopping
+</a>
+
 </div>
 
 <div class="cart-container">
 
+<!-- LEFT -->
 <div id="cart-items"></div>
 
+<!-- RIGHT -->
 <div class="summary">
 
 <h2>Summary</h2>
 
-<p>Items: <span id="itemCount">0</span></p>
-<p>Subtotal: <span id="subtotal">₹0</span></p>
-<p>GST: <span id="gst">₹0</span></p>
-<p>Delivery: ₹50</p>
+<p>
+Items:
+<span id="itemCount">0</span>
+</p>
 
-<hr>
+<p>
+Subtotal:
+<span id="subtotal">₹0</span>
+</p>
 
-<p class="total">Total: <span id="total">₹0</span></p>
+<p>
+GST (5%):
+<span id="gst">₹0</span>
+</p>
 
-<button class="btn invoice-btn" onclick="generateInvoice()">Generate Invoice</button>
-<button class="btn pay-btn" onclick="payNow()">Pay Now</button>
-<button class="btn clear-btn" onclick="clearCart()">Clear Cart</button>
+<p>
+Delivery:
+₹50
+</p>
+
+<hr style="margin:15px 0;">
+
+<p class="total">
+Total:
+<span id="total">₹0</span>
+</p>
+
+<button class="btn invoice-btn" onclick="generateInvoice()">
+Generate Invoice
+</button>
+
+<button class="btn pay-btn" onclick="payNow()">
+Pay Now
+</button>
+
+<button class="btn clear-btn" onclick="clearCart()">
+Clear Cart
+</button>
 
 </div>
 
@@ -149,23 +248,48 @@ window.location.href="login.html";
 
 <script>
 
-/* GET CART */
+/* =========================
+   GET CART
+========================= */
+
 function getCart(){
-let cart = JSON.parse(localStorage.getItem("cart")) || [];
-return Array.isArray(cart) ? cart : [];
+
+let cart =
+JSON.parse(localStorage.getItem("cart"));
+
+if(!Array.isArray(cart)){
+cart = [];
 }
 
-/* SAVE CART */
+return cart;
+
+}
+
+/* =========================
+   SAVE CART
+========================= */
+
 function setCart(cart){
-localStorage.setItem("cart",JSON.stringify(cart));
+
+localStorage.setItem(
+"cart",
+JSON.stringify(cart)
+);
+
 renderCart();
+
 }
 
-/* RENDER CART */
+/* =========================
+   RENDER CART
+========================= */
+
 function renderCart(){
 
 let cart = getCart();
-let box = document.getElementById("cart-items");
+
+let box =
+document.getElementById("cart-items");
 
 let subtotal = 0;
 let items = 0;
@@ -173,121 +297,230 @@ let items = 0;
 box.innerHTML = "";
 
 if(cart.length === 0){
-box.innerHTML = `<div class="empty">Your cart is empty 🛒</div>`;
+
+box.innerHTML = `
+<div class="empty">
+Your cart is empty 🛒
+</div>
+`;
+
 updateSummary(0,0);
+
 return;
+
 }
 
 cart.forEach(item=>{
+
 subtotal += item.price * item.qty;
 items += item.qty;
 
 box.innerHTML += `
+
 <div class="cart-card">
-<img src="${item.img}">
+
+<img src="${item.img}" alt="product">
+
 <div>
+
 <h3>${item.name}</h3>
-<p class="price">₹${item.price}</p>
+
+<p class="price">
+₹${item.price}
+</p>
 
 <div class="qty">
-<button onclick="changeQty(${item.id},-1)">-</button>
+
+<button onclick="changeQty(${item.id},-1)">
+-
+</button>
+
 <span>${item.qty}</span>
-<button onclick="changeQty(${item.id},1)">+</button>
+
+<button onclick="changeQty(${item.id},1)">
++
+</button>
+
 </div>
 
-<div class="remove" onclick="removeItem(${item.id})">Remove</div>
+<div class="remove"
+onclick="removeItem(${item.id})">
+Remove
+</div>
 
 </div>
+
 </div>
+
 `;
+
 });
 
 updateSummary(subtotal,items);
+
 }
 
-/* SUMMARY */
+/* =========================
+   SUMMARY
+========================= */
+
 function updateSummary(subtotal,items){
 
 let gst = subtotal * 0.05;
-let total = subtotal + gst + 50;
 
-document.getElementById("itemCount").innerText = items;
-document.getElementById("subtotal").innerText = "₹" + subtotal.toFixed(2);
-document.getElementById("gst").innerText = "₹" + gst.toFixed(2);
-document.getElementById("total").innerText = "₹" + total.toFixed(2);
+let total =
+subtotal + gst + 50;
+
+document.getElementById("itemCount")
+.innerText = items;
+
+document.getElementById("subtotal")
+.innerText =
+"₹" + subtotal.toFixed(2);
+
+document.getElementById("gst")
+.innerText =
+"₹" + gst.toFixed(2);
+
+document.getElementById("total")
+.innerText =
+"₹" + total.toFixed(2);
+
 }
 
-/* QTY CHANGE */
+/* =========================
+   CHANGE QTY
+========================= */
+
 function changeQty(id,val){
 
 let cart = getCart();
-let item = cart.find(i=>i.id===id);
+
+let item =
+cart.find(i=>i.id === id);
 
 if(item){
+
 item.qty += val;
 
 if(item.qty <= 0){
-cart = cart.filter(i=>i.id !== id);
+
+cart =
+cart.filter(i=>i.id !== id);
+
 }
+
 }
 
 setCart(cart);
+
 }
 
-/* REMOVE */
+/* =========================
+   REMOVE ITEM
+========================= */
+
 function removeItem(id){
-let cart = getCart().filter(i=>i.id !== id);
+
+let cart =
+getCart().filter(i=>i.id !== id);
+
 setCart(cart);
+
 }
 
-/* CLEAR */
+/* =========================
+   CLEAR CART
+========================= */
+
 function clearCart(){
+
+if(confirm("Clear full cart?")){
+
 localStorage.removeItem("cart");
+
 renderCart();
+
 }
 
-/* INVOICE */
+}
+
+/* =========================
+   GENERATE INVOICE
+========================= */
+
 function generateInvoice(){
 
 let cart = getCart();
 
 if(cart.length === 0){
+
 alert("Cart empty");
+
 return;
+
 }
 
-let invoice = {
-invoiceNo: "INV" + Date.now(),
+let invoiceData = {
+
+invoiceNo:
+"INV" + Date.now(),
+
 user: currentUser,
+
 items: cart,
-date: new Date().toLocaleString(),
+
+date:
+new Date().toLocaleString(),
+
 status: "PENDING"
+
 };
 
-localStorage.setItem("invoiceData",JSON.stringify(invoice));
-window.location.href = "invoice.html";
+localStorage.setItem(
+"invoiceData",
+JSON.stringify(invoiceData)
+);
+
+window.location.href =
+"invoice.html";
+
 }
 
-/* PAY NOW */
+/* =========================
+   FIXED PAY NOW
+========================= */
+
 function payNow(){
 
 let cart = getCart();
 
 if(cart.length === 0){
+
 alert("Cart empty");
+
 return;
+
 }
 
-/* ⭐ IMPORTANT FIX: proper user object pass */
-localStorage.setItem("checkoutData",JSON.stringify({
-user: currentUser,
-items: cart
-}));
+/* SAVE FOR CHECKOUT */
 
-window.location.href = "checkout.html";
+localStorage.setItem(
+"checkoutCart",
+JSON.stringify(cart)
+);
+
+/* REDIRECT */
+
+window.location.href =
+"checkout.html";
+
 }
 
-/* INIT */
+/* =========================
+   INIT
+========================= */
+
 renderCart();
 
 </script>
